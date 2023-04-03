@@ -8,3 +8,8 @@ test.png
 test.mp4
 1.mp4
 *.png
+backup.py
+build
+/__pycache__
+main.mp4
+optFunc.cp39-win_amd64.pyd
