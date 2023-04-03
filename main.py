@@ -105,7 +105,7 @@ def SaveResultAsPhotoList(patternList,frameList,width,height,patternSize):
 
 args = sys.argv
 #print(args)
-args = ['c:/Users/Katana GF66 11UC/Documents/BadAppleESP32 Project/Code maker/main.py', '1.mp4', '-r', '32x16', '-lc']
+args = ['c:/Users/Katana GF66 11UC/Documents/BadAppleESP32 Project/Code maker/main.py', '1.mp4', '-r', '32x16', '-lc','-a']
 if len(args) <= 1:
     clear()
     print("You must give at least the video path")
@@ -236,8 +236,10 @@ print(f"Total subframes: {total_frames}\nSubframes not compress: {sub_frame_not_
 for frames in l_frames_compress:
     print(frames)
 
-print("Press 1 to save result as Photo list\nPress anything else to exit the program")
-if input() == "1":
+if batch:
+    SaveResultAsPhotoList(l_subframes,l_frames_compress,width,height,l_pattern)
+elif input() == "1":
+    print("Press 1 to save result as Photo list\nPress anything else to exit the program")
     SaveResultAsPhotoList(l_subframes,l_frames_compress,width,height,l_pattern)
     
 
