@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+cimport numpy as np
 cimport cython
 
 def convertionWithResize(int height,int width,int threshold,object video,object resample):

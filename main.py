@@ -4,8 +4,13 @@ import numpy as np
 from PIL import Image
 import os
 import optFunc
+import csv
+import pandas as pd
+import struct
 
 threshold = 60
+
+
 def clear():
     if os.name == 'posix':
         os.system('clear')
@@ -132,12 +137,29 @@ if resize:
 else:
     lFrames = optFunc.convertion(width=width,height=height,video=vid,threshold=threshold)
 
-l_subframes = []
+l_subframes = [
+    [[False,False,False,False,False,False,False,False],
+    [False,False,False,False,False,False,False,False],
+    [False,False,False,False,False,False,False,False],
+    [False,False,False,False,False,False,False,False],
+    [False,False,False,False,False,False,False,False],
+    [False,False,False,False,False,False,False,False],
+    [False,False,False,False,False,False,False,False],
+    [False,False,False,False,False,False,False,False]]
+    ,
+    [[True,True,True,True,True,True,True,True],
+    [True,True,True,True,True,True,True,True],
+    [True,True,True,True,True,True,True,True],
+    [True,True,True,True,True,True,True,True],
+    [True,True,True,True,True,True,True,True],
+    [True,True,True,True,True,True,True,True],
+    [True,True,True,True,True,True,True,True],
+    [True,True,True,True,True,True,True,True]]
+]
 l_frames_compress = []
 sub_frame_finded = 0
 sub_frame_not_finded = 0
 total_frames = 0
-clear()
 print("Creating and assigning subframe table")
 for frame in lFrames:
     subframe_map = np.zeros(shape=(int(width/l_pattern),int(height/l_pattern)),dtype=int)
@@ -159,14 +181,113 @@ for frame in lFrames:
                 total_frames += 1
     l_frames_compress.append(subframe_map)
     
-clear()
-print(f"Total subframes: {total_frames}\nSubframes not compress: {sub_frame_not_finded}\nsubframes compress: {sub_frame_finded}")
+if not batch:
+    print(f"Total subframes: {total_frames}\nSubframes not compress: {sub_frame_not_finded}\nsubframes compress: {sub_frame_finded}\nPress enter to continue")
+    input()
 
+while True:
+    try: 
+        with open ('l_frames_compressed.ztfl','w') as f:
+            write = csv.writer(f)
+            write.writerows(l_frames_compress)
+        break
+    except PermissionError:
+        clear()
+        print("File is in use, please close it to save the binary and then press enter")
+        input()
+
+while True:
+    try:
+        with open ('l_subframes.ztsl','w') as f:
+            write = csv.writer(f)
+            write.writerows(l_subframes)
+        break
+    except PermissionError:
+        clear()
+        print("File is in use, please close it to save the binary and then press enter")
+        input()
+
+while True:    
+    try:
+        # 1 is white, 0 is black 
+        with open ('binarySubframeList.bin','wb') as f:
+            binaryListBuffer = []
+            for subframe in l_subframes:
+                i = 0
+                byteBuffer = 0
+                for line in subframe:
+                    for dot in line:
+                        if dot:
+                            byteBuffer+=(1*(2**i))
+                        i+=1
+                
+                f.write(bytearray(reversed(struct.pack('Q', byteBuffer))))
+                binaryListBuffer.append(byteBuffer)
+            f.close()
+            break    
+    except PermissionError:
+        clear()
+        print("File is in use, please close it to save the binary and then press enter")
+        input()
+        
+while True:    
+    try:
+        # 1 is white, 0 is black 
+        
+        with open ('frameList.h','w') as f:
+            f.write{"#include\n#ifndef CAR_H\n#define CAR_H\nextern const unsigned char car[];\n#endif\n"}
+        
+        with open ('frameList.cpp','w') as f:
+            f.write("#include \"frameStream.h\"\n\nPROGMEM const unsigned char frameBuffer[][] ={\n")
+            majorComma = False
+            for subframe in l_subframes:
+                i = 0
+                bitStream = ""
+                comma = False
+                byteBuffer = 0
+                if majorComma:
+                            bitStream += ","
+                for line in subframe:
+                    for dot in line:
+                        if comma:
+                            bitStream += ","
+                        if dot:
+                            bitStream += f"0xFF"
+                            comma = True
+                        else:
+                            bitStream += f"0x00"
+                            comma = True
+                        i+=1
+                
+                f.write("{+\n"+f"{bitStream}\n"+"}")
+            f.write("\n};")
+            f.close()
+            break    
+    except PermissionError:
+        clear()
+        print("File is in use, please close it to save the binary and then press enter")
+        input()    
+        
+if batch:
+            with open ('integerSubframeList.csv','w') as f:
+                for integer in binaryListBuffer:
+                    f.write(f"{integer}\n")
+        
+else:
+    clear()
+    print("Press 1 to save the list result as integer strings, this is not used in the code")
+    if input() == "1":
+        with open ('integerSubframeList.csv','w') as f:
+            for integer in binaryListBuffer:
+                f.write(f"{integer}\n")
+            
 if batch:
     SaveResultAsPhotoList(l_subframes,l_frames_compress,width,height,l_pattern)
-elif input() == "1":
+else:
+    clear()
     print("Press 1 to save result as Photo list\nPress anything else to exit the program")
-    SaveResultAsPhotoList(l_subframes,l_frames_compress,width,height,l_pattern)
+    if input() == "1":
+        SaveResultAsPhotoList(l_subframes,l_frames_compress,width,height,l_pattern)
     
 
     
