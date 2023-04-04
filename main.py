@@ -258,7 +258,7 @@ while True:
                             comma = True
                         i+=1
                 
-                f.write("{+\n"+f"{bitStream}\n"+"}")
+                f.write("{\n"+f"{bitStream}\n"+"}")
             f.write("\n};")
             f.close()
             break    
