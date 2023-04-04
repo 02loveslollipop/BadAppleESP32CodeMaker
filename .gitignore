@@ -1,15 +1,19 @@
 /.vscode
-/Code maker.code-workspace
-/main_1000.mp4
-/test.jpg
-/test.m4v
-nearest.png
-test.png
-test.mp4
-1.mp4
+Code maker.code-workspace
+*.jpg
+*.m4v
 *.png
+*.png
+*.csv
+*.bin
+/*.ztfl
+/*.ztsl
 backup.py
 build
 /__pycache__
-main.mp4
-optFunc.cp39-win_amd64.pyd
+*.mp4
+*.pyd
+frameStream.h
+frameStream.cpp
+l_frames_compressed.ztfl
+l_subframes.ztsl

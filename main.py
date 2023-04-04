@@ -10,7 +10,6 @@ import struct
 
 threshold = 60
 
-
 def clear():
     if os.name == 'posix':
         os.system('clear')
@@ -234,10 +233,10 @@ while True:
     try:
         # 1 is white, 0 is black 
         
-        with open ('frameList.h','w') as f:
-            f.write{"#include\n#ifndef CAR_H\n#define CAR_H\nextern const unsigned char car[];\n#endif\n"}
-        
-        with open ('frameList.cpp','w') as f:
+        with open ('frameStream.h','w') as f:
+            f.write("#include <avr/pgmspace.h>\n#ifndef FRAMESTREAM_H\n#define FRAMESTREAM_H\nextern const unsigned char frameBuffer[][];\n#endif\n")
+                    
+        with open ('frameStream.cpp','w') as f:
             f.write("#include \"frameStream.h\"\n\nPROGMEM const unsigned char frameBuffer[][] ={\n")
             majorComma = False
             for subframe in l_subframes:
@@ -288,25 +287,3 @@ else:
     print("Press 1 to save result as Photo list\nPress anything else to exit the program")
     if input() == "1":
         SaveResultAsPhotoList(l_subframes,l_frames_compress,width,height,l_pattern)
-    
-
-    
-                        
-
-                
-                    
-                    
-                        
-                        
-                        
-
-
-
-                   
-                        
-                    
-                
-            
-        
-    
-
