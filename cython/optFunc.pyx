@@ -56,7 +56,7 @@ def findSubFrame(object list_buffer,object subframe):
             
     raise Exception("subFrame not found")
 
-def solveSubframe(object frameBuffer,int totalFrames,int width,int height, int l_pattern):
+def solveSubframe(object frameBuffer,int width,int height, int l_pattern):
     cdef l_subframesX = 2
     cdef np.ndarray l_subframes = np.zeros(shape=(l_subframesX,l_pattern,l_pattern),dtype=bool)
     l_subframes[0] = np.asarray([

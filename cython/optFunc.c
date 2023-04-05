@@ -1910,7 +1910,6 @@ static const char __pyx_k_array_equal[] = "array_equal";
 static const char __pyx_k_frameBuffer[] = "frameBuffer";
 static const char __pyx_k_l_subframes[] = "l_subframes";
 static const char __pyx_k_list_buffer[] = "list_buffer";
-static const char __pyx_k_totalFrames[] = "totalFrames";
 static const char __pyx_k_Cached_frame[] = "Cached frame: ";
 static const char __pyx_k_findSubFrame[] = "findSubFrame";
 static const char __pyx_k_l_subframesX[] = "l_subframesX";
@@ -1987,7 +1986,6 @@ static PyObject *__pyx_n_s_success;
 static PyObject *__pyx_n_s_test;
 static PyObject *__pyx_n_s_threshold;
 static PyObject *__pyx_n_s_total;
-static PyObject *__pyx_n_s_totalFrames;
 static PyObject *__pyx_n_s_val;
 static PyObject *__pyx_n_s_vector;
 static PyObject *__pyx_n_s_video;
@@ -1997,7 +1995,7 @@ static PyObject *__pyx_n_s_zeros;
 static PyObject *__pyx_pf_7optFunc_convertionWithResize(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_height, int __pyx_v_width, int __pyx_v_threshold, PyObject *__pyx_v_video, PyObject *__pyx_v_resample); /* proto */
 static PyObject *__pyx_pf_7optFunc_2convertion(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_height, int __pyx_v_width, int __pyx_v_threshold, PyObject *__pyx_v_video); /* proto */
 static PyObject *__pyx_pf_7optFunc_4findSubFrame(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_list_buffer, PyObject *__pyx_v_subframe); /* proto */
-static PyObject *__pyx_pf_7optFunc_6solveSubframe(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_frameBuffer, CYTHON_UNUSED int __pyx_v_totalFrames, int __pyx_v_width, int __pyx_v_height, int __pyx_v_l_pattern); /* proto */
+static PyObject *__pyx_pf_7optFunc_6solveSubframe(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_frameBuffer, int __pyx_v_width, int __pyx_v_height, int __pyx_v_l_pattern); /* proto */
 static PyObject *__pyx_int_1;
 static PyObject *__pyx_int_2;
 static PyObject *__pyx_tuple_;
@@ -3400,7 +3398,7 @@ static PyObject *__pyx_pf_7optFunc_4findSubFrame(CYTHON_UNUSED PyObject *__pyx_s
  * 
  *     raise Exception("subFrame not found")             # <<<<<<<<<<<<<<
  * 
- * def solveSubframe(object frameBuffer,int totalFrames,int width,int height, int l_pattern):
+ * def solveSubframe(object frameBuffer,int width,int height, int l_pattern):
  */
   __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)(&((PyTypeObject*)PyExc_Exception)[0])), __pyx_tuple_, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 57, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -3435,7 +3433,7 @@ static PyObject *__pyx_pf_7optFunc_4findSubFrame(CYTHON_UNUSED PyObject *__pyx_s
 /* "optFunc.pyx":59
  *     raise Exception("subFrame not found")
  * 
- * def solveSubframe(object frameBuffer,int totalFrames,int width,int height, int l_pattern):             # <<<<<<<<<<<<<<
+ * def solveSubframe(object frameBuffer,int width,int height, int l_pattern):             # <<<<<<<<<<<<<<
  *     cdef l_subframesX = 2
  *     cdef np.ndarray l_subframes = np.zeros(shape=(l_subframesX,l_pattern,l_pattern),dtype=bool)
  */
@@ -3445,7 +3443,6 @@ static PyObject *__pyx_pw_7optFunc_7solveSubframe(PyObject *__pyx_self, PyObject
 static PyMethodDef __pyx_mdef_7optFunc_7solveSubframe = {"solveSubframe", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_7optFunc_7solveSubframe, METH_VARARGS|METH_KEYWORDS, 0};
 static PyObject *__pyx_pw_7optFunc_7solveSubframe(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_frameBuffer = 0;
-  CYTHON_UNUSED int __pyx_v_totalFrames;
   int __pyx_v_width;
   int __pyx_v_height;
   int __pyx_v_l_pattern;
@@ -3456,14 +3453,12 @@ static PyObject *__pyx_pw_7optFunc_7solveSubframe(PyObject *__pyx_self, PyObject
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("solveSubframe (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_frameBuffer,&__pyx_n_s_totalFrames,&__pyx_n_s_width,&__pyx_n_s_height,&__pyx_n_s_l_pattern,0};
-    PyObject* values[5] = {0,0,0,0,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_frameBuffer,&__pyx_n_s_width,&__pyx_n_s_height,&__pyx_n_s_l_pattern,0};
+    PyObject* values[4] = {0,0,0,0};
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
       const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
       switch (pos_args) {
-        case  5: values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
-        CYTHON_FALLTHROUGH;
         case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
         CYTHON_FALLTHROUGH;
         case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
@@ -3482,63 +3477,55 @@ static PyObject *__pyx_pw_7optFunc_7solveSubframe(PyObject *__pyx_self, PyObject
         else goto __pyx_L5_argtuple_error;
         CYTHON_FALLTHROUGH;
         case  1:
-        if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_totalFrames)) != 0)) kw_args--;
+        if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_width)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("solveSubframe", 1, 5, 5, 1); __PYX_ERR(0, 59, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("solveSubframe", 1, 4, 4, 1); __PYX_ERR(0, 59, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
-        if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_width)) != 0)) kw_args--;
+        if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_height)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("solveSubframe", 1, 5, 5, 2); __PYX_ERR(0, 59, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("solveSubframe", 1, 4, 4, 2); __PYX_ERR(0, 59, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
-        if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_height)) != 0)) kw_args--;
+        if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_l_pattern)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("solveSubframe", 1, 5, 5, 3); __PYX_ERR(0, 59, __pyx_L3_error)
-        }
-        CYTHON_FALLTHROUGH;
-        case  4:
-        if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_l_pattern)) != 0)) kw_args--;
-        else {
-          __Pyx_RaiseArgtupleInvalid("solveSubframe", 1, 5, 5, 4); __PYX_ERR(0, 59, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("solveSubframe", 1, 4, 4, 3); __PYX_ERR(0, 59, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
         if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "solveSubframe") < 0)) __PYX_ERR(0, 59, __pyx_L3_error)
       }
-    } else if (PyTuple_GET_SIZE(__pyx_args) != 5) {
+    } else if (PyTuple_GET_SIZE(__pyx_args) != 4) {
       goto __pyx_L5_argtuple_error;
     } else {
       values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
       values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
-      values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
     }
     __pyx_v_frameBuffer = values[0];
-    __pyx_v_totalFrames = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_totalFrames == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 59, __pyx_L3_error)
-    __pyx_v_width = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_width == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 59, __pyx_L3_error)
-    __pyx_v_height = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_height == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 59, __pyx_L3_error)
-    __pyx_v_l_pattern = __Pyx_PyInt_As_int(values[4]); if (unlikely((__pyx_v_l_pattern == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 59, __pyx_L3_error)
+    __pyx_v_width = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_width == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 59, __pyx_L3_error)
+    __pyx_v_height = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_height == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 59, __pyx_L3_error)
+    __pyx_v_l_pattern = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_l_pattern == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 59, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("solveSubframe", 1, 5, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 59, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("solveSubframe", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 59, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("optFunc.solveSubframe", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_7optFunc_6solveSubframe(__pyx_self, __pyx_v_frameBuffer, __pyx_v_totalFrames, __pyx_v_width, __pyx_v_height, __pyx_v_l_pattern);
+  __pyx_r = __pyx_pf_7optFunc_6solveSubframe(__pyx_self, __pyx_v_frameBuffer, __pyx_v_width, __pyx_v_height, __pyx_v_l_pattern);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_7optFunc_6solveSubframe(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_frameBuffer, CYTHON_UNUSED int __pyx_v_totalFrames, int __pyx_v_width, int __pyx_v_height, int __pyx_v_l_pattern) {
+static PyObject *__pyx_pf_7optFunc_6solveSubframe(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_frameBuffer, int __pyx_v_width, int __pyx_v_height, int __pyx_v_l_pattern) {
   PyObject *__pyx_v_l_subframesX = 0;
   PyArrayObject *__pyx_v_l_subframes = 0;
   PyObject *__pyx_v_l_frames_compress = NULL;
@@ -3587,7 +3574,7 @@ static PyObject *__pyx_pf_7optFunc_6solveSubframe(CYTHON_UNUSED PyObject *__pyx_
 
   /* "optFunc.pyx":60
  * 
- * def solveSubframe(object frameBuffer,int totalFrames,int width,int height, int l_pattern):
+ * def solveSubframe(object frameBuffer,int width,int height, int l_pattern):
  *     cdef l_subframesX = 2             # <<<<<<<<<<<<<<
  *     cdef np.ndarray l_subframes = np.zeros(shape=(l_subframesX,l_pattern,l_pattern),dtype=bool)
  *     l_subframes[0] = np.asarray([
@@ -3596,7 +3583,7 @@ static PyObject *__pyx_pf_7optFunc_6solveSubframe(CYTHON_UNUSED PyObject *__pyx_
   __pyx_v_l_subframesX = __pyx_int_2;
 
   /* "optFunc.pyx":61
- * def solveSubframe(object frameBuffer,int totalFrames,int width,int height, int l_pattern):
+ * def solveSubframe(object frameBuffer,int width,int height, int l_pattern):
  *     cdef l_subframesX = 2
  *     cdef np.ndarray l_subframes = np.zeros(shape=(l_subframesX,l_pattern,l_pattern),dtype=bool)             # <<<<<<<<<<<<<<
  *     l_subframes[0] = np.asarray([
@@ -5074,7 +5061,7 @@ static PyObject *__pyx_pf_7optFunc_6solveSubframe(CYTHON_UNUSED PyObject *__pyx_
   /* "optFunc.pyx":59
  *     raise Exception("subFrame not found")
  * 
- * def solveSubframe(object frameBuffer,int totalFrames,int width,int height, int l_pattern):             # <<<<<<<<<<<<<<
+ * def solveSubframe(object frameBuffer,int width,int height, int l_pattern):             # <<<<<<<<<<<<<<
  *     cdef l_subframesX = 2
  *     cdef np.ndarray l_subframes = np.zeros(shape=(l_subframesX,l_pattern,l_pattern),dtype=bool)
  */
@@ -6235,7 +6222,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_test, __pyx_k_test, sizeof(__pyx_k_test), 0, 0, 1, 1},
   {&__pyx_n_s_threshold, __pyx_k_threshold, sizeof(__pyx_k_threshold), 0, 0, 1, 1},
   {&__pyx_n_s_total, __pyx_k_total, sizeof(__pyx_k_total), 0, 0, 1, 1},
-  {&__pyx_n_s_totalFrames, __pyx_k_totalFrames, sizeof(__pyx_k_totalFrames), 0, 0, 1, 1},
   {&__pyx_n_s_val, __pyx_k_val, sizeof(__pyx_k_val), 0, 0, 1, 1},
   {&__pyx_n_s_vector, __pyx_k_vector, sizeof(__pyx_k_vector), 0, 0, 1, 1},
   {&__pyx_n_s_video, __pyx_k_video, sizeof(__pyx_k_video), 0, 0, 1, 1},
@@ -6262,7 +6248,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  * 
  *     raise Exception("subFrame not found")             # <<<<<<<<<<<<<<
  * 
- * def solveSubframe(object frameBuffer,int totalFrames,int width,int height, int l_pattern):
+ * def solveSubframe(object frameBuffer,int width,int height, int l_pattern):
  */
   __pyx_tuple_ = PyTuple_Pack(1, __pyx_kp_s_subFrame_not_found); if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 57, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple_);
@@ -6340,14 +6326,14 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   /* "optFunc.pyx":59
  *     raise Exception("subFrame not found")
  * 
- * def solveSubframe(object frameBuffer,int totalFrames,int width,int height, int l_pattern):             # <<<<<<<<<<<<<<
+ * def solveSubframe(object frameBuffer,int width,int height, int l_pattern):             # <<<<<<<<<<<<<<
  *     cdef l_subframesX = 2
  *     cdef np.ndarray l_subframes = np.zeros(shape=(l_subframesX,l_pattern,l_pattern),dtype=bool)
  */
-  __pyx_tuple__11 = PyTuple_Pack(20, __pyx_n_s_frameBuffer, __pyx_n_s_totalFrames, __pyx_n_s_width, __pyx_n_s_height, __pyx_n_s_l_pattern, __pyx_n_s_l_subframesX, __pyx_n_s_l_subframes, __pyx_n_s_l_frames_compress, __pyx_n_s_total, __pyx_n_s_index, __pyx_n_s_subframe, __pyx_n_s_subframe_map, __pyx_n_s_k, __pyx_n_s_val, __pyx_n_s_finded, __pyx_n_s_frame, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_subframe_i, __pyx_n_s_subframe_j); if (unlikely(!__pyx_tuple__11)) __PYX_ERR(0, 59, __pyx_L1_error)
+  __pyx_tuple__11 = PyTuple_Pack(19, __pyx_n_s_frameBuffer, __pyx_n_s_width, __pyx_n_s_height, __pyx_n_s_l_pattern, __pyx_n_s_l_subframesX, __pyx_n_s_l_subframes, __pyx_n_s_l_frames_compress, __pyx_n_s_total, __pyx_n_s_index, __pyx_n_s_subframe, __pyx_n_s_subframe_map, __pyx_n_s_k, __pyx_n_s_val, __pyx_n_s_finded, __pyx_n_s_frame, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_subframe_i, __pyx_n_s_subframe_j); if (unlikely(!__pyx_tuple__11)) __PYX_ERR(0, 59, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__11);
   __Pyx_GIVEREF(__pyx_tuple__11);
-  __pyx_codeobj__12 = (PyObject*)__Pyx_PyCode_New(5, 0, 20, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__11, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_cython_optFunc_pyx, __pyx_n_s_solveSubframe, 59, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__12)) __PYX_ERR(0, 59, __pyx_L1_error)
+  __pyx_codeobj__12 = (PyObject*)__Pyx_PyCode_New(4, 0, 19, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__11, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_cython_optFunc_pyx, __pyx_n_s_solveSubframe, 59, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__12)) __PYX_ERR(0, 59, __pyx_L1_error)
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -6755,7 +6741,7 @@ if (!__Pyx_RefNanny) {
   /* "optFunc.pyx":59
  *     raise Exception("subFrame not found")
  * 
- * def solveSubframe(object frameBuffer,int totalFrames,int width,int height, int l_pattern):             # <<<<<<<<<<<<<<
+ * def solveSubframe(object frameBuffer,int width,int height, int l_pattern):             # <<<<<<<<<<<<<<
  *     cdef l_subframesX = 2
  *     cdef np.ndarray l_subframes = np.zeros(shape=(l_subframesX,l_pattern,l_pattern),dtype=bool)
  */
