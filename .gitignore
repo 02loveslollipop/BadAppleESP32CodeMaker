@@ -1,19 +1,17 @@
 /.vscode
-Code maker.code-workspace
+/__pycache__/
+/media/
 *.jpg
 *.m4v
 *.png
 *.png
 *.csv
 *.bin
-/*.ztfl
-/*.ztsl
-backup.py
-build
-/__pycache__
 *.mp4
 *.pyd
-frameStream.h
-frameStream.cpp
-l_frames_compressed.ztfl
-l_subframes.ztsl
+*.ztfl
+*.ztsl
+Code maker.code-workspace
+backup.py
+build
+
