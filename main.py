@@ -3,10 +3,8 @@ import cv2
 import numpy as np
 from PIL import Image
 import os
-import optFunc
+import optFunc as c
 import csv
-import pandas as pd
-import struct
 
 threshold = 60
 
@@ -53,9 +51,62 @@ def SaveResultAsPhotoList(patternList,frameList,width,height,patternSize):
         cv2.imwrite(filename=f"{frameCount:05d}.png",img=frameBuffer)
         frameCount += 1
 
+def solveSubframe(frameBuffer,totalFrames,width,height,l_pattern):
+    l_subframesX = 2
+    l_subframes = np.zeros(shape=(l_subframesX,l_pattern,l_pattern),dtype=bool)
+    l_subframes[0] = np.asarray([
+        [False,False,False,False,False,False,False,False],
+        [False,False,False,False,False,False,False,False],
+        [False,False,False,False,False,False,False,False],
+        [False,False,False,False,False,False,False,False],
+        [False,False,False,False,False,False,False,False],
+        [False,False,False,False,False,False,False,False],
+        [False,False,False,False,False,False,False,False],
+        [False,False,False,False,False,False,False,False]
+        ])
+
+    l_subframes[1] = np.asarray([
+        [True,True,True,True,True,True,True,True],
+        [True,True,True,True,True,True,True,True],
+        [True,True,True,True,True,True,True,True],
+        [True,True,True,True,True,True,True,True],
+        [True,True,True,True,True,True,True,True],
+        [True,True,True,True,True,True,True,True],
+        [True,True,True,True,True,True,True,True],
+        [True,True,True,True,True,True,True,True]
+        ])
+    l_frames_compress = []
+    total = 0
+    sub_frame_not_finded = 0
+    index = 2
+
+    for frame in frameBuffer:
+        subframe_map = np.zeros(shape=(int(width/l_pattern),int(height/l_pattern)),dtype=int)
+        finded = False
+        for i in range(len(subframe_map)):
+            for j in range(len(subframe_map[0])):
+                subframe = np.zeros(shape=(l_pattern,l_pattern),dtype=bool)
+                for subframe_i in range(l_pattern):
+                    for subframe_j in range(l_pattern):
+                        subframe[subframe_i][subframe_j] = frame[(i*l_pattern)+(subframe_i)][(j*l_pattern)+(subframe_j)]
+                
+                try:
+                    subframe_map[i][j] = np.where(np.all(l_subframes==subframe, axis=(1, 2)))[0][0]
+                except IndexError:
+                    l_subframesX += 1
+                    l_subframes.resize((l_subframesX,l_pattern,l_pattern),refcheck=False)
+                    l_subframes[index] = subframe
+                    subframe_map[i][j] = index
+                    index += 1
+                    sub_frame_not_finded += 1
+                total += 1
+        l_frames_compress.append(subframe_map)
+    
+    return l_subframes, l_frames_compress, total, sub_frame_not_finded
+
 args = sys.argv
 #print(args)
-args = ['c:/Users/Katana GF66 11UC/Documents/BadAppleESP32 Project/Code maker/main.py', './media/320x240.mp4', '-r', '32x16', '-lc']
+#args = ['c:/Users/Katana GF66 11UC/Documents/BadAppleESP32 Project/Code maker/main.py', './media/test.mp4', '-r', '240x256', '-lc']
 if len(args) <= 1:
     print("You must give at least the video path")
     exit()
@@ -169,21 +220,25 @@ if not batch:
         print("Press any button to start convertion\n\nDuring convertion press ESC to cancel the process")
 
 if resize:
-    lFrames = optFunc.convertionWithResize(width=width,height=height,video=vid,resample=resample,threshold=threshold)
+    lFrames = c.convertionWithResize(width=width,height=height,video=vid,resample=resample,threshold=threshold)
 else:
-    lFrames = optFunc.convertion(width=width,height=height,video=vid,threshold=threshold)
+    lFrames = c.convertion(width=width,height=height,video=vid,threshold=threshold)
 
-l_subframes, l_frames_compress, total, sub_frame_not_finded, numberSubframes = optFunc.solveSubframe(frameBuffer=lFrames,totalFrames=totalFrames,width=width,height=height,l_pattern = l_pattern)
-
-if batch:
-    print(f"Total subframes: {total}\nCompress subframes: {numberSubframes}\nNot compress subframes: {sub_frame_not_finded}")
-else:
+if not batch:
     clear()
-    print(f"Total subframes: {total}\nCompress subframes: {numberSubframes}\nNot compress subframes: {sub_frame_not_finded}\nPress any button to save the result")
-    input()
+print("Creating subfameBuffer and solving subframes")
     
+l_subframes, l_frames_compress, total, sub_frame_not_finded = c.solveSubframe(frameBuffer=lFrames,totalFrames=totalFrames,width=width,height=height,l_pattern = l_pattern)
+#l_subframes, l_frames_compress, total, sub_frame_not_finded = solveSubframe(frameBuffer=lFrames,totalFrames=totalFrames,width=width,height=height,l_pattern = l_pattern)
+
+if not batch:
+    clear()
+print(f"Total subframes: {total}\nCompress subframes: {total-sub_frame_not_finded}\nNot compress subframes: {sub_frame_not_finded}")
+
+
 while True: #Save "binarySubframeList.bin"
     try:
+        print("Trying to save binarySubframeList.bin")    
         # 1 is white, 0 is black 
         with open ('binarySubframeList.bin','wb') as f:
             binaryListBuffer = []
@@ -204,13 +259,14 @@ while True: #Save "binarySubframeList.bin"
             f.close()
             break    
     except PermissionError:
-        clear()
         print("File is in use, please close it to save the binary and then press enter")
         input()
+        clear()
         
 while True: #Save "binaryCompressFrame.bin"
     try:
         # 1 is white, 0 is black 
+        print("Trying to save binaryCompressFrame.bin")  
         with open ('binaryCompressFrame.bin','wb') as f:
             binaryCompressFrame = []
 
@@ -222,12 +278,13 @@ while True: #Save "binaryCompressFrame.bin"
             f.close()
             break    
     except PermissionError:
-        clear()
         print("File is in use, please close it to save the binary and then press enter")
         input()
+        clear()
 
 while True: #Save "l_frames_compressed.ztfl"
     try: 
+        
         with open ('l_frames_compressed.ztfl','w') as f:
             write = csv.writer(f)
             write.writerows(l_frames_compress)

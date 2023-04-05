@@ -57,7 +57,8 @@ def findSubFrame(object list_buffer,object subframe):
     raise Exception("subFrame not found")
 
 def solveSubframe(object frameBuffer,int totalFrames,int width,int height, int l_pattern):
-    cdef np.ndarray l_subframes = np.zeros(shape=(int((totalFrames*width*height)/(l_pattern**2)),l_pattern,l_pattern),dtype=bool)
+    cdef l_subframesX = 2
+    cdef np.ndarray l_subframes = np.zeros(shape=(l_subframesX,l_pattern,l_pattern),dtype=bool)
     l_subframes[0] = np.asarray([
         [False,False,False,False,False,False,False,False],
         [False,False,False,False,False,False,False,False],
@@ -81,13 +82,12 @@ def solveSubframe(object frameBuffer,int totalFrames,int width,int height, int l
         ])
     l_frames_compress = []
     cdef int total = 0
-    cdef int sub_frame_not_finded = 0
-    cdef int numberSubframes = 0
+    cdef int index = 2
     cdef np.ndarray subframe
     cdef np.ndarray subframe_map
     cdef int k
-    cdef bint finded 
-
+    cdef int val
+    cdef bint finded
     for frame in frameBuffer:
         subframe_map = np.zeros(shape=(int(width/l_pattern),int(height/l_pattern)))
         finded = False
@@ -97,23 +97,15 @@ def solveSubframe(object frameBuffer,int totalFrames,int width,int height, int l
                 for subframe_i in range(l_pattern):
                     for subframe_j in range(l_pattern):
                         subframe[subframe_i][subframe_j] = frame[(i*l_pattern)+(subframe_i)][(j*l_pattern)+(subframe_j)]
-
-                    k = 0
-                    for listed_subframes in l_subframes:
-        
-                        if np.array_equal(listed_subframes,subframe):
-                            val = int(k)
-                            finded = True
-                        else:
-                            k += 1
-                    if finded:
-                        finded = False
-                    else:
-                        l_subframes[numberSubframes] = subframe
-                        val = numberSubframes
-                        sub_frame_not_finded += 1
-                    subframe_map[i][j] = val
-                    total += 1
+                try:
+                    subframe_map[i][j] = np.where(np.all(l_subframes==subframe, axis=(1, 2)))[0][0]
+                except IndexError:
+                    l_subframesX += 1
+                    l_subframes.resize((l_subframesX,l_pattern,l_pattern),refcheck=False)
+                    l_subframes[index] = subframe
+                    subframe_map[i][j] = index
+                    index += 1
+                total += 1
         l_frames_compress.append(subframe_map)
     
-    return l_subframes, l_frames_compress, total, sub_frame_not_finded, numberSubframes
+    return l_subframes, l_frames_compress, total, (index-2)
