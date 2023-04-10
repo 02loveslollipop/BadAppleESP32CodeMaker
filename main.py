@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 import os
 import optFunc as c
+import math
 
 def tryVideoCapture(path: str):
     try:
@@ -100,7 +101,7 @@ def findDeltas(frameListBuffer: list, width: int, height: int, ):
         #printFrame(currentFrame) #this is just for test
     return byteStream, byteStreamPointer
 
-def findInterlacedDeltas(frameListBuffer: list, width: int, height: int, ):
+def findInterlacedDeltas(frameListBuffer: list, width: int, height: int,interlaceState: bool = True):
     #Black is False
     #White is True
     currentFrame = np.full((width,height),fill_value=True,dtype=bool)
@@ -116,7 +117,7 @@ def findInterlacedDeltas(frameListBuffer: list, width: int, height: int, ):
             for i in range(width):
                 if np.array_equal(frame[i],currentFrame[i]):
                     pass
-                elif (i % 2) == 0:
+                elif not interlaceState and (i%2) == 0:
                     if byteStream[byteStreamPointer] == 0xFF:
                         byteStream.append(i)
                         byteStreamPointer += 1
@@ -125,10 +126,47 @@ def findInterlacedDeltas(frameListBuffer: list, width: int, height: int, ):
                         byteStream.append(i)
                         byteStreamPointer += 2
                     for j in range(height):
-                        if frame[i][j] != currentFrame[i][j] and (j % 2) == 2:
+                        if frame[i][j] != currentFrame[i][j]:
                             byteStream.append(j)
                             currentFrame[i][j] = not currentFrame[i][j]
                             byteStreamPointer += 1
+                elif interlaceState and (i%2) != 0:
+                    if byteStream[byteStreamPointer] == 0xFF:
+                        byteStream.append(i)
+                        byteStreamPointer += 1
+                    else:
+                        byteStream.append(0xFE)
+                        byteStream.append(i)
+                        byteStreamPointer += 2
+                    for j in range(height):
+                        if frame[i][j] != currentFrame[i][j]:
+                            byteStream.append(j)
+                            currentFrame[i][j] = not currentFrame[i][j]
+                            byteStreamPointer += 1
+        if interlaceState:
+            interlaceState = False
+        else:
+            interlaceState = True
+                    
+        #printFrame(currentFrame) #this is just for test
+    return byteStream, byteStreamPointer
+
+def findScanLineDeltas(frameListBuffer: list, width: int, height: int):
+    #Black is False
+    #White is True
+    currentFrame = np.full((width,height),fill_value=True,dtype=bool)
+    byteStream = []
+    byteStreamPointer = -1
+
+    for frame in frameListBuffer:
+        byteStream.append(0xFF)
+        byteStreamPointer += 1
+        if np.array_equal(frame,currentFrame):
+            pass
+        else:
+            for i in range(width):
+                if np.array_equal(frame[i],currentFrame[i]) or (i%2) == 0:
+                    pass
                 else:
                     if byteStream[byteStreamPointer] == 0xFF:
                         byteStream.append(i)
@@ -142,8 +180,6 @@ def findInterlacedDeltas(frameListBuffer: list, width: int, height: int, ):
                             byteStream.append(j)
                             currentFrame[i][j] = not currentFrame[i][j]
                             byteStreamPointer += 1
-                    
-                    
         #printFrame(currentFrame) #this is just for test
     return byteStream, byteStreamPointer
 
@@ -157,6 +193,7 @@ if len(args) < 1:
 else:
     threshold = 60
     dither = False
+    scanLine = False
     deprecateNextArg = False
     customResolution = False
     pathReady = False
@@ -182,8 +219,17 @@ else:
         elif args[i] == "-t":
             threshold = int(args[i+1])
             deprecateNextArg = True 
-        elif args[i] == "-i":
-            interlaced = True       
+        elif args[i] == "-scanLine" and not interlaced:
+            scanLine = True
+        elif args[i] == "-scanLine" and  interlaced:
+            print("You can't use scan lines and interlaced at the same time")
+            exit()
+        elif args[i] == "-interlacedEven":
+            interlaced = True
+            evenFrames = True
+        elif args[i] == "-interlacedOdd":
+            interlaced = True
+            evenFrames = False 
         elif args[i] == "-s":
             saveAsPhoto = True
         elif args[i] == "-d":
@@ -235,17 +281,23 @@ else:
             sourceMedia = tryVideoCapture(path=path)
             height = int(sourceMedia.get(cv2.CAP_PROP_FRAME_HEIGHT))
             width = int(sourceMedia.get(cv2.CAP_PROP_FRAME_WIDTH))
+            fps = sourceMedia.get(cv2.CAP_PROP_FPS)
             ready = True
         elif args[i].startswith("-") and not "/" in args[i] and not "\\" in args[i] : 
             print(f"{args[i]} has not been recognize as a valid argument")
+            exit()
         elif args[i].endswith[".py"] or args[i].endswith[".pyw"]:
             pass
         else:
             path = args[i]
 
 if ready:
+    resize = True
     pass
-elif pathReady: sourceMedia = tryVideoCapture(path=path)
+elif pathReady:
+    resize = True
+    sourceMedia = tryVideoCapture(path=path)
+    fps = sourceMedia.get(cv2.CAP_PROP_FPS)
 else:
     print("There is not a valid path for the video, please check the arguments")
     exit()
@@ -267,7 +319,9 @@ if not batchExport:
     print("Finding deltas and creating byteStream")
  
 if interlaced:
-    byteStream, byteStreamPointer = findInterlacedDeltas(frameListBuffer=frameListBuffer, width=width, height=height)
+    byteStream, byteStreamPointer = findInterlacedDeltas(frameListBuffer=frameListBuffer, width=width, height=height,interlaceState= evenFrames)
+elif scanLine:
+    byteStream, byteStreamPointer = findScanLineDeltas(frameListBuffer=frameListBuffer, width=width, height=height)
 else:
     byteStream, byteStreamPointer = findDeltas(frameListBuffer=frameListBuffer, width=width, height=height)
 
@@ -288,11 +342,13 @@ while True: #Save "result.bin"
         clear()
 
 
+
+
 while True: #Save "byteStream.h"
     print("Trying to save byteStream.h")      
     try:
-        with open ('byteStream.h','w') as f:
-            f.write(f"const uint32_t totalFrames = {byteStreamPointer};\n"+"PROGMEM const unsigned char byteStream[] ={\n")
+        with open ('esp32badApple/byteStream.h','w') as f:
+            f.write(f"const int delayMS = {math.trunc((1/fps)*1000)};\nconst int delayUS = {(((1/fps)*1000)-math.trunc((1/fps)*1000))*1000};\nconst uint32_t totalFrames = {byteStreamPointer};\n"+"PROGMEM const unsigned char byteStream[] ={\n")
             buffer = ""
             for currentByte in byteStream:
                 buffer += str(currentByte) + ","
