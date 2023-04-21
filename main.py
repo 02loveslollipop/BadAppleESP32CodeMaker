@@ -9,7 +9,7 @@ def tryVideoCapture(path: str):
     try:
         media = cv2.VideoCapture(path)
         return media
-    except FileNotFoundError:
+    except:
         print("cv2 could not open the video file, please check the path or if the file is in use")
         exit()
 
@@ -186,7 +186,7 @@ def findScanLineDeltas(frameListBuffer: list, width: int, height: int):
 #TODO: implementar el dithering en el algoritmo, y ver cuanto influye en el tamaño del delta map
 
 args = sys.argv
-#args = ['c:/Users/Katana GF66 11UC/Documents/BadAppleESP32 Project/Code maker/main.py', './media/1.mp4', '-r', '100x64', '-lc']
+#args = ['c:/Users/Katana GF66 11UC/Documents/BadAppleESP32 Project/Code maker/main.py', './media/1.m4', '-r', '100x64', '-lc']
 if len(args) < 1:
     print("There is not a valid path for the video, please check the arguments")
     exit()
