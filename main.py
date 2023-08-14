@@ -46,18 +46,36 @@ def TestSavedImages(byteStream: bytearray,width: int,height: int):
     frameBuffer = np.zeros((width,height),dtype=bool)
     ImageBuffer = np.full((width,height,3),255.0)
     frameCounter = 0
-    deprecateNextByte = False
+    skipByte = 0
     for i in range(len(byteStream)-1):
-        if byteStream[i] == 0xFF:
+        
+        if skipByte > 0:
+            skipByte -=1
+        elif byteStream[i] == 0xFF:
             line = byteStream[i+1]
-            deprecateNextByte = True
+            skipByte = 1
             cv2.imwrite(filename=f"{frameCounter:05d}.png",img=ImageBuffer)
             frameCounter += 1
         elif byteStream[i] == 0xFE:
             line = byteStream[i+1]
-            deprecateNextByte = True
-        elif deprecateNextByte:
-            deprecateNextByte = False
+            skipByte = 1
+        elif byteStream[i] == 0xFD:
+            first = byteStream[i+1]
+            last = byteStream[i+2]
+            for j in range(last-first+1):
+                try:
+                    frameBuffer[line][j+first] = not frameBuffer[line][j+first]
+                except:
+                    print(f"({line},{j+first})")
+                if frameBuffer[line][j+first]:
+                    ImageBuffer[line][j+first][0] = 255
+                    ImageBuffer[line][j+first][1] = 255
+                    ImageBuffer[line][j+first][2] = 255
+                else:
+                    ImageBuffer[line][j+first][0] = 0
+                    ImageBuffer[line][j+first][1] = 0
+                    ImageBuffer[line][j+first][2] = 0
+            skipByte = 2
         else:            
             frameBuffer[line][byteStream[i]] = not frameBuffer[line][byteStream[i]]
             if frameBuffer[line][byteStream[i]]:
@@ -168,10 +186,10 @@ def findScanLineDeltas(frameListBuffer: list, width: int, height: int):
                 if np.array_equal(frame[i],currentFrame[i]) or (i%2) == 0:
                     pass
                 else:
-                    if byteStream[byteStreamPointer] == 0xFF:
+                    if byteStream[byteStreamPointer] == 0xFF: #Current point is new frame 0xFF, so we add the new line where its going to start
                         byteStream.append(i)
                         byteStreamPointer += 1
-                    else:
+                    else: #Line break on same frame
                         byteStream.append(0xFE)
                         byteStream.append(i)
                         byteStreamPointer += 2
@@ -180,13 +198,239 @@ def findScanLineDeltas(frameListBuffer: list, width: int, height: int):
                             byteStream.append(j)
                             currentFrame[i][j] = not currentFrame[i][j]
                             byteStreamPointer += 1
+                                            
         #printFrame(currentFrame) #this is just for test
     return byteStream, byteStreamPointer
 
-#TODO: implementar el dithering en el algoritmo, y ver cuanto influye en el tamaño del delta map
+def findScanLineDeltasCompressed(frameListBuffer: list, width: int, height: int):
+    #Black is False
+    #White is True
+    currentFrame = np.full((width,height),fill_value=True,dtype=bool)
+    byteStream = []
+    byteStreamPointer = -1
+
+    for frame in frameListBuffer:
+        byteStream.append(0xFF)
+        byteStreamPointer += 1
+        if np.array_equal(frame,currentFrame):
+            pass
+        else:
+            for i in range(width):
+                if np.array_equal(frame[i],currentFrame[i]) or (i%2) == 0:
+                    pass
+                else:
+                    if byteStream[byteStreamPointer] == 0xFF: #Current point is new frame 0xFF, so we add the new line where its going to start
+                        byteStream.append(i)
+                        byteStreamPointer += 1
+                    else: #Line break on same frame
+                        byteStream.append(0xFE)
+                        byteStream.append(i)
+                        byteStreamPointer += 2
+                    for j in range(height):
+                        if frame[i][j] != currentFrame[i][j]:
+                            byteStream.append(j)
+                            currentFrame[i][j] = not currentFrame[i][j]
+                            byteStreamPointer += 1          
+        #printFrame(currentFrame) #this is just for test
+    
+    #Se simplifican las parte
+    byteStream.append(0xFF)
+    for i in range(len(byteStream)):
+        if(byteStream[i]==0xFF and byteStream[i+1]==0xFF):
+            byteStream.insert(i+1,0x00)
+    jumpFrameRepetido = False
+    while not jumpFrameRepetido:
+        if byteStream[0] == 0xFF and byteStream[1] ==0xFF:
+            byteStream.pop(0)
+        else:
+            jumpFrameRepetido = True
+    passnPoints = 0
+    firstValue = -1
+    end = False
+    i=0
+    redundances = 0
+    compressions = 0 
+    originalLen = len(byteStream)
+    while i < len(byteStream):
+        if passnPoints > 0:
+            passnPoints-=1
+        elif firstValue == -1:
+            
+            if (byteStream[i] == 0xFF):
+                passnPoints+=1
+            elif (byteStream[i] == 0xFE):
+                passnPoints+=1;
+            elif byteStream[i] == 0xFD:
+                passnPoints+=2
+            elif byteStream[i]==(byteStream[i+1]-1): 
+                firstValue = byteStream[i]
+                indexFirstValue = i
+            
+        else:
+            if byteStream[i] == 0xFF or byteStream[i] == 0xFE:
+                passnPoints+=1
+                indexLastValue = i
+                if indexLastValue-indexFirstValue>=3:
+                    lastValue = byteStream[i]
+                    index=indexFirstValue+3
+                    byteStream[indexFirstValue] = 0
+                    byteStream[indexFirstValue+1] = 0
+                    byteStream[indexFirstValue+2] = 0
+                    while index!=indexLastValue:
+                        byteStream.pop(index)
+                        index+=1
+                    byteStream[indexFirstValue] = 0xFD
+                    byteStream[indexFirstValue+1] = firstValue
+                    byteStream[indexFirstValue+2] = lastValue
+                    i=indexFirstValue+2
+                    redundances+=indexLastValue-indexFirstValue
+                    compressions +=1
+                firstValue=-1
+            elif byteStream[i] == 0xFD:
+                passnPoints+=2
+                indexLastValue = i
+                if indexLastValue-indexFirstValue>=3:
+                    lastValue = byteStream[i]
+                    index=indexFirstValue+3
+                    byteStream[indexFirstValue] = 0
+                    byteStream[indexFirstValue+1] = 0
+                    byteStream[indexFirstValue+2] = 0
+                    while index!=indexLastValue:
+                        byteStream.pop(index)
+                        index+=1
+                    byteStream[indexFirstValue] = 0xFD
+                    byteStream[indexFirstValue+1] = firstValue
+                    byteStream[indexFirstValue+2] = lastValue
+                    i=indexFirstValue+2
+                    redundances+=indexLastValue-indexFirstValue
+                    compressions+=1
+                firstValue=-1
+            elif byteStream[i]!=byteStream[i+1]-1:
+                indexLastValue = i
+                if indexLastValue-indexFirstValue>=3:
+                    lastValue = byteStream[i]
+                    
+                    index=indexFirstValue+3
+                    indexPerm = index
+                    byteStream[indexFirstValue] = 0
+                    byteStream[indexFirstValue+1] = 0
+                    byteStream[indexFirstValue+2] = 0
+                    while index!=indexLastValue+1:
+                        byteStream.pop(indexPerm)
+                        index+=1
+                    byteStream[indexFirstValue] = 0xFD
+                    byteStream[indexFirstValue+1] = firstValue
+                    byteStream[indexFirstValue+2] = lastValue
+                    i=indexFirstValue+2
+                    redundances+=indexLastValue-indexFirstValue
+                    compressions+=1
+                firstValue=-1
+        i+=1
+    
+    print(f"{redundances} redundant points were removed, the new size is {originalLen-redundances+(3*compressions)}B, the total compression was {redundances-(3*compressions)}B, the original size was {originalLen}B, and the compression ratio was {(1-((redundances-(3*compressions))/originalLen))*100}%")            
+    
+    return byteStream, byteStreamPointer
+
+def compressByteStream(byteStream: list):
+    byteStream.append(0xFF)
+    for i in range(len(byteStream)):
+        if(byteStream[i]==0xFF and byteStream[i+1]==0xFF):
+            byteStream.insert(i+1,0x00)
+    jumpFrameRepetido = False
+    while not jumpFrameRepetido:
+        if byteStream[0] == 0xFF and byteStream[1] ==0xFF:
+            byteStream.pop(0)
+        else:
+            jumpFrameRepetido = True
+    passnPoints = 0
+    firstValue = -1
+    end = False
+    i=0
+    redundances = 0
+    compressions = 0 
+    originalLen = len(byteStream)
+    while i < len(byteStream):
+        if passnPoints > 0:
+            passnPoints-=1
+        elif firstValue == -1:
+            
+            if (byteStream[i] == 0xFF):
+                passnPoints+=1
+            elif (byteStream[i] == 0xFE):
+                passnPoints+=1;
+            elif byteStream[i] == 0xFD:
+                passnPoints+=2
+            elif byteStream[i]==(byteStream[i+1]-1): 
+                firstValue = byteStream[i]
+                indexFirstValue = i
+            
+        else:
+            if byteStream[i] == 0xFF or byteStream[i] == 0xFE:
+                passnPoints+=1
+                indexLastValue = i
+                if indexLastValue-indexFirstValue>=3:
+                    lastValue = byteStream[i]
+                    index=indexFirstValue+3
+                    byteStream[indexFirstValue] = 0
+                    byteStream[indexFirstValue+1] = 0
+                    byteStream[indexFirstValue+2] = 0
+                    while index!=indexLastValue:
+                        byteStream.pop(index)
+                        index+=1
+                    byteStream[indexFirstValue] = 0xFD
+                    byteStream[indexFirstValue+1] = firstValue
+                    byteStream[indexFirstValue+2] = lastValue
+                    i=indexFirstValue+2
+                    redundances+=indexLastValue-indexFirstValue
+                    compressions +=1
+                firstValue=-1
+            elif byteStream[i] == 0xFD:
+                passnPoints+=2
+                indexLastValue = i
+                if indexLastValue-indexFirstValue>=3:
+                    lastValue = byteStream[i]
+                    index=indexFirstValue+3
+                    byteStream[indexFirstValue] = 0
+                    byteStream[indexFirstValue+1] = 0
+                    byteStream[indexFirstValue+2] = 0
+                    while index!=indexLastValue:
+                        byteStream.pop(index)
+                        index+=1
+                    byteStream[indexFirstValue] = 0xFD
+                    byteStream[indexFirstValue+1] = firstValue
+                    byteStream[indexFirstValue+2] = lastValue
+                    i=indexFirstValue+2
+                    redundances+=indexLastValue-indexFirstValue
+                    compressions+=1
+                firstValue=-1
+            elif byteStream[i]!=byteStream[i+1]-1:
+                indexLastValue = i
+                if indexLastValue-indexFirstValue>=3:
+                    lastValue = byteStream[i]
+                    
+                    index=indexFirstValue+3
+                    indexPerm = index
+                    byteStream[indexFirstValue] = 0
+                    byteStream[indexFirstValue+1] = 0
+                    byteStream[indexFirstValue+2] = 0
+                    while index!=indexLastValue+1:
+                        byteStream.pop(indexPerm)
+                        index+=1
+                    byteStream[indexFirstValue] = 0xFD
+                    byteStream[indexFirstValue+1] = firstValue
+                    byteStream[indexFirstValue+2] = lastValue
+                    i=indexFirstValue+2
+                    redundances+=indexLastValue-indexFirstValue
+                    compressions+=1
+                firstValue=-1
+        i+=1
+    
+    print(f"{redundances} redundant points were removed, the new size is {originalLen-redundances+(3*compressions)}B, the total compression was {redundances-(3*compressions)}B, the original size was {originalLen}B, and the compression ratio was {(1-((redundances-(3*compressions))/originalLen))*100}%")  
+    
+    return byteStream
 
 args = sys.argv
-#args = ['c:/Users/Katana GF66 11UC/Documents/BadAppleESP32 Project/Code maker/main.py', './media/1.m4', '-r', '100x64', '-lc']
+#args = ['c:/Users/Katana GF66 11UC/Documents/BadAppleESP32 Project/Code maker/main.py', './media/1.mp4', '-r', '100x64', '-lc','-c','-s']
 if len(args) < 1:
     print("There is not a valid path for the video, please check the arguments")
     exit()
@@ -204,6 +448,7 @@ else:
     saveAsPhoto = False
     testResolution = False
     interlaced = False
+    scanLineCompressed = False
     for i in range(len(args)):
         if i == 0:
             pass
@@ -219,10 +464,12 @@ else:
         elif args[i] == "-t":
             threshold = int(args[i+1])
             deprecateNextArg = True 
-        elif args[i] == "-scanLine" and not interlaced:
+        elif args[i] == "-scanLineCompressed" and (not interlaced or not scanLineCompressed):
+            scanLineCompressed = True
+        elif args[i] == "-scanLine" and (not interlaced or not scanLineCompressed):
             scanLine = True
-        elif args[i] == "-scanLine" and  interlaced:
-            print("You can't use scan lines and interlaced at the same time")
+        elif args[i] == ("-scanLine" or "-scanLineCompressed") and (interlaced or scanLineCompressed):
+            print("You can't use scan lines and scanlinescompressed or interlaced at the same time")
             exit()
         elif args[i] == "-interlacedEven":
             interlaced = True
@@ -276,6 +523,8 @@ else:
             deprecateNextArg = False
         elif args[i] == "-bt":
             batchExport=True
+        elif args[i] == "-c":
+            compressed=True
         elif not customResolution and not ready:
             path = args[i]
             sourceMedia = tryVideoCapture(path=path)
@@ -313,21 +562,18 @@ if resize:
     frameListBuffer = c.convertionWithResize(width=width,height=height,video=sourceMedia,resample=resampleAlgoritm,threshold=threshold)
 else:
     frameListBuffer = c.convertion(width=width,height=height,video=sourceMedia,threshold=threshold)
-
-if not batchExport:
-    clear()
-    print("Finding deltas and creating byteStream")
  
 if interlaced:
     byteStream, byteStreamPointer = findInterlacedDeltas(frameListBuffer=frameListBuffer, width=width, height=height,interlaceState= evenFrames)
 elif scanLine:
     byteStream, byteStreamPointer = findScanLineDeltas(frameListBuffer=frameListBuffer, width=width, height=height)
+elif scanLineCompressed:
+    byteStream, byteStreamPointer = findScanLineDeltasCompressed(frameListBuffer=frameListBuffer, width=width, height=height)
 else:
     byteStream, byteStreamPointer = findDeltas(frameListBuffer=frameListBuffer, width=width, height=height)
 
-
-if not batchExport:
-    clear()
+if compressed:
+    byteStream = compressByteStream(byteStream=byteStream)
 
 while True: #Save "result.bin"
     try:
