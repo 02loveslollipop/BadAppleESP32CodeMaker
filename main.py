@@ -594,7 +594,7 @@ while True: #Save "byteStream.h"
     print("Trying to save byteStream.h")      
     try:
         with open ('esp32badApple/byteStream.h','w') as f:
-            f.write(f"const int delayMS = {math.trunc((1/fps)*1000)};\nconst int delayUS = {(((1/fps)*1000)-math.trunc((1/fps)*1000))*1000};\nconst uint32_t totalFrames = {byteStreamPointer};\n"+"PROGMEM const unsigned char byteStream[] ={\n")
+            f.write(f"const int delayMS = {math.trunc((1/fps)*1000)};\nconst int delayUS = {math.modf((1/fps)*1000)[1]*1000};\nconst uint32_t totalFrames = {byteStreamPointer};\n"+"PROGMEM const unsigned char byteStream[] ={\n")
             buffer = ""
             for currentByte in byteStream:
                 buffer += str(currentByte) + ","
@@ -613,8 +613,3 @@ if saveAsPhoto:
     print("Saving result as images")
     TestSavedImages(byteStream=byteStream,height=height,width=width)
     print("Images saved susccesfuly")
-
-
-        
-             
-            
