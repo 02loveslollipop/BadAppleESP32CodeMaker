@@ -275,6 +275,7 @@ def findScanLineDeltas(frameListBuffer: list, width: int, height: int) -> list:
                     byteStream.extend(diff_indices)
                     currentFrame[i, diff_indices] = frame[i, diff_indices]
 
+
     while byteStream[0] == 0xFF and byteStream[1] == 0xFF:
         byteStream.popleft()
 
@@ -299,7 +300,6 @@ def findScanLineDeltasCompressed(frameListBuffer: list, width: int, height: int)
                     diff_indices = np.where(frame[i] != currentFrame[i])[0]
                     byteStream.extend(diff_indices)
                     currentFrame[i, diff_indices] = frame[i, diff_indices]
-        #printFrame(currentFrame) #this is just for test
     
     #Se simplifican las parte
     byteStream = list(byteStream)
@@ -498,7 +498,7 @@ def compressByteStream(byteStream: list) -> list:
     return byteStream
 
 #args = sys.argv
-args = ['c:/Users/Katana GF66 11UC/Documents/BadAppleESP32 Project/Code maker/main.py', './media/2.mp4', '-r', '240x150', '-lc','-c','-s']
+args = ['c:/Users/Katana GF66 11UC/Documents/BadAppleESP32 Project/Code maker/main.py', './media/2.mp4', '-r', '120x75', '-lc','-c','-s']
 if len(args) < 1:
     print("There is not a valid path for the video, please check the arguments")
     exit()
