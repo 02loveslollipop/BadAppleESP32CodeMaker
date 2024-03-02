@@ -6,6 +6,7 @@ import optFunc as c
 import math
 from collections import deque   
 
+
 def tryVideoCapture(path: str):
     try:
         media = cv2.VideoCapture(path)
@@ -44,8 +45,9 @@ def clear() -> None:
         os.system('cls')
 
 def TestSavedVideo(byteStream: list, width: int, height: int) -> None:
-    frameBuffer = np.ones((width, height), dtype=bool)  # All True
-    ImageBuffer = np.zeros((width, height, 3), dtype=np.uint8)  # All black
+    frameBuffer = np.ones((width, height), dtype=bool) # all True
+    #imageBuffer all black
+    ImageBuffer = np.zeros((width, height, 3), dtype=np.uint8)
 
     # Define the codec and create a VideoWriter object
     fourcc = cv2.VideoWriter_fourcc(*'XVID')  # or use 'mp4v'
@@ -498,7 +500,7 @@ def compressByteStream(byteStream: list) -> list:
     return byteStream
 
 #args = sys.argv
-args = ['c:/Users/Katana GF66 11UC/Documents/BadAppleESP32 Project/Code maker/main.py', './media/2.mp4', '-r', '120x75', '-lc','-c','-s']
+args = ['c:/Users/Katana GF66 11UC/Documents/BadAppleESP32 Project/Code maker/main.py', './media/1.mp4', '-r', '120x75', '-lc','-c','-s']
 if len(args) < 1:
     print("There is not a valid path for the video, please check the arguments")
     exit()
