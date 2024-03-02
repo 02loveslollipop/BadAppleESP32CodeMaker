@@ -245,7 +245,7 @@ def findScanLineDeltasCompressed(frameListBuffer: list, width: int, height: int)
                     diff_indices = np.where(frame[i] != currentFrame[i])[0]
                     byteStream.extend(diff_indices)
                     currentFrame[i, diff_indices] = frame[i, diff_indices]
-        printFrame(currentFrame) #this is just for test
+        #printFrame(currentFrame) #this is just for test
     
     #Se simplifican las parte
     byteStream.append(0xFF)
