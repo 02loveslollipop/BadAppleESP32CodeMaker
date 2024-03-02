@@ -1,9 +1,13 @@
+# cython: boundscheck=False
+# uses the cython boundscheck directive to disable bounds checking for array indexing.
+
 import cv2
 import numpy as np
 cimport numpy as np
 cimport cython
+from cython.parallel import prange
 
-def convertionWithResize(int height,int width,int threshold,object video,object resample):
+def old_convertionWithResize(int height,int width,int threshold,object video,object resample):
     cdef int count = 0
     cdef bint success = True
     l_vectors = []
@@ -24,7 +28,54 @@ def convertionWithResize(int height,int width,int threshold,object video,object 
         count += 1
     return l_vectors
 
+
+def convertionWithResize(int height,int width,int threshold,object video,object resample):
+    cdef int count = 0
+    cdef bint success = True
+    cdef int i, j, k
+    cdef np.uint8_t [:, :, :] vector
+    l_vectors = []
+    while True:
+        success,image = video.read()
+        if not success:
+            break
+        imgArray = np.asarray(cv2.resize(src=image,dsize=(height,width),interpolation=resample))
+        vector = imgArray
+        for i in prange(height, nogil=True):
+            for j in range(width):
+                if vector[i][j][0] < threshold or vector[i][j][1] < threshold or vector[i][j][2] < threshold:
+                    vector[i][j] = True
+                else:
+                    vector[i][j] = False
+        print(f"Cached frame: {count+1}")
+        l_vectors.append(np.asarray(vector))           
+        count += 1
+    return l_vectors
+
+
 def convertion(int height,int width,int threshold,object video):
+    cdef int count = 0
+    cdef bint success = True
+    cdef np.uint8_t [:, :, :] vector
+    cdef int i, j, k
+    l_vectors = []
+    while True:
+        success,image = video.read()
+        if not success:
+            break
+        vector = np.asarray(image)
+
+        for i in prange(height, nogil=True):
+            for j in range(width):
+                if vector[i][j][0] < threshold or vector[i][j][1] < threshold or vector[i][j][2] < threshold:
+                    vector[i][j] = True
+                else:
+                    vector[i][j] = False
+        print(f"Cached frame: {count+1}")
+        l_vectors.append(np.asarray(vector)) 
+        count += 1
+    return l_vectors
+def old_convertion(int height,int width,int threshold,object video):
     cdef int count = 0
     cdef bint success = True
     l_vectors = []

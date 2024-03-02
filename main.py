@@ -140,8 +140,7 @@ def findInterlacedDeltas(frameListBuffer: list, width: int, height: int,interlac
                         byteStream.append(i)
                         byteStreamPointer += 1
                     else:
-                        byteStream.append(0xFE)
-                        byteStream.append(i)
+                        byteStream.extend([0xFE,i])
                         byteStreamPointer += 2
                     for j in range(height):
                         if frame[i][j] != currentFrame[i][j]:
@@ -153,8 +152,7 @@ def findInterlacedDeltas(frameListBuffer: list, width: int, height: int,interlac
                         byteStream.append(i)
                         byteStreamPointer += 1
                     else:
-                        byteStream.append(0xFE)
-                        byteStream.append(i)
+                        byteStream.extend([0xFE,i])
                         byteStreamPointer += 2
                     for j in range(height):
                         if frame[i][j] != currentFrame[i][j]:
@@ -223,8 +221,7 @@ def findScanLineDeltasCompressed(frameListBuffer: list, width: int, height: int)
                         byteStream.append(i)
                         byteStreamPointer += 1
                     else: #Line break on same frame
-                        byteStream.append(0xFE)
-                        byteStream.append(i)
+                        byteStream.extend([0xFE, i])
                         byteStreamPointer += 2
                     for j in range(height):
                         if frame[i][j] != currentFrame[i][j]:
