@@ -426,8 +426,8 @@ def compressByteStream(byteStream: list):
     
     return byteStream
 
-args = sys.argv
-#args = ['c:/Users/Katana GF66 11UC/Documents/BadAppleESP32 Project/Code maker/main.py', './media/1.mp4', '-r', '100x64', '-lc','-c','-s']
+#args = sys.argv
+args = ['c:/Users/Katana GF66 11UC/Documents/BadAppleESP32 Project/Code maker/main.py', './media/badapplefull24fps.mp4', '-r', '192x128', '-lc','-c','-s']
 if len(args) < 1:
     print("There is not a valid path for the video, please check the arguments")
     exit()
@@ -557,6 +557,8 @@ if not batchExport:
     
 if resize:
     frameListBuffer = c.convertionWithResize(width=width,height=height,video=sourceMedia,resample=resampleAlgoritm,threshold=threshold)
+    for i in range(len(frameListBuffer)):
+        frameListBuffer[i] = frameListBuffer[i].astype(bool)
 else:
     frameListBuffer = c.convertion(width=width,height=height,video=sourceMedia,threshold=threshold)
  
