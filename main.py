@@ -108,8 +108,7 @@ def findDeltas(frameListBuffer: list, width: int, height: int, ):
                         byteStream.append(i)
                         byteStreamPointer += 1
                     else:
-                        byteStream.append(0xFE)
-                        byteStream.append(i)
+                        byteStream.extend([0xFE,i])
                         byteStreamPointer += 2
                     for j in range(height):
                         if frame[i][j] != currentFrame[i][j]:
