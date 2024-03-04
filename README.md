@@ -34,3 +34,12 @@ cd BadAppleESP32CodeMaker
 ```bash
 python main.py --help
 ```
+
+## ESP32 setup
+afer the code (byteStream.h) is generated, you can use the following code to display the video on a composite video output:
+
+1. add the byteStream.h file to the Arduino project folder
+2. open [eps32badApple.ino](https://github.com/02loveslollipop/BadAppleESP32CodeMaker/blob/master/esp32badApple/esp32badApple.ino)
+3. upload the code to the ESP32
+
+the composite video output is connected to the GPIO 25 pin of the ESP32
