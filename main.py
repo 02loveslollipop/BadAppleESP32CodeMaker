@@ -454,8 +454,8 @@ def compressByteStream(byteStream: list) -> list:
     
     return byteStream
 
-#args = sys.argv
-args = ['c:/Users/Katana GF66 11UC/Documents/BadAppleESP32 Project/Code maker/main.py', './media/1.mp4', '-r', '120x75', '-lc','-c','-s']
+args = sys.argv
+#args = ['c:/Users/Katana GF66 11UC/Documents/BadAppleESP32 Project/Code maker/main.py', './media/1.mp4', '-r', '120x75', '-lc','-c','-s']
 if len(args) < 1:
     print("There is not a valid path for the video, please check the arguments")
     exit()
@@ -478,6 +478,9 @@ else:
     for i in range(len(args)):
         if i == 0:
             pass
+        elif args[i] == "--help":
+            print("--------------BadAppleESP32CodeMaker--------------\n\nThis program is used to convert a video into a C binary array file that can be used to display the video on a ESP32 with a composite output\n\nArguments:\n\n-r [resolution] : Set the resolution of the video, the default is the resolution of the video\n\n-ts [frame] : Save a photo of the frame specified\n\n-t [threshold] : Set the threshold of the video, the default is 60\n\n-s : Save the video as a sequence of images\n\n-d : Dither the video\n\n-sv : Dither the video and save it as a sequence of images\n\n-lc : Use Lanczos4 as the resample algoritm\n\n-nr : Use Nearest as the resample algoritm\n\n-bc : Use Bicubic as the resample algoritm\n\n-bl : Use Linear as the resample algoritm\n\n-b2 : Use Bits2 as the resample algoritm\n\n-ar : Use Area as the resample algoritm\n\n-c : Compress the byteStream.h\n\n-scanLine : Use scan lines to compress the byteStream.h\n\n-scanLineCompressed : Use scan lines to compress the byteStream.h\n\n-interlacedEven : Use interlaced frames\n\n-interlacedOdd : Use interlaced frames\n\n-bt : Batch export\n\n--help : Show this message\n\n")
+            exit()
         elif args[i] == "-r":
             height = int(args[i+1].split("x")[0])
             width = int(args[i+1].split("x")[1])
