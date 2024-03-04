@@ -18,13 +18,19 @@ This is a Python based utility to convert a video into a C array for the ESP32. 
 ```bash
 git clone https://github.com/02loveslollipop/BadAppleESP32CodeMaker.git
 ```
-2. (Windows) execute setup.ps1 script:
+2. go to the repository folder:
+```bash
+cd BadAppleESP32CodeMaker
+```
+3. (Windows) execute setup.ps1 script:
 ```powershell
 .\setup.ps1
 ```
-2. (Linux) execute setup.sh script:
+3. (Linux) execute setup.sh script:
 ```bash
 ./setup.sh
 ```
-3. Execute the utility:
+5. execute the utility:
 ```bash
+python main.py --help
+```
