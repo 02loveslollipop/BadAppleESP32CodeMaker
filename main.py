@@ -148,7 +148,8 @@ def TestSavedImages(byteStream: list, width: int, height: int) -> None:
 def findDeltas(frameListBuffer: list, width: int, height: int) -> list:
     currentFrame = np.full((width,height),fill_value=True,dtype=bool)
     byteStream = deque()
-
+    #Black is False
+    #White is True
     for frame in frameListBuffer:
         byteStream.append(0xFF)
         if not np.array_equal(frame,currentFrame):
@@ -167,52 +168,6 @@ def findDeltas(frameListBuffer: list, width: int, height: int) -> list:
 
     return list(byteStream)
 
-    #Black is False
-    #White is True
-    currentFrame = np.full((width,height),fill_value=True,dtype=bool)
-    byteStream = []
-    byteStreamPointer = -1
-
-    for frame in frameListBuffer:
-        byteStream.append(0xFF)
-        byteStreamPointer += 1
-        if np.array_equal(frame,currentFrame):
-            pass
-        else:
-            for i in range(width):
-                if np.array_equal(frame[i],currentFrame[i]):
-                    pass
-                elif not interlaceState and (i%2) == 0:
-                    if byteStream[byteStreamPointer] == 0xFF:
-                        byteStream.append(i)
-                        byteStreamPointer += 1
-                    else:
-                        byteStream.extend([0xFE,i])
-                        byteStreamPointer += 2
-                    for j in range(height):
-                        if frame[i][j] != currentFrame[i][j]:
-                            byteStream.append(j)
-                            currentFrame[i][j] = not currentFrame[i][j]
-                            byteStreamPointer += 1
-                elif interlaceState and (i%2) != 0:
-                    if byteStream[byteStreamPointer] == 0xFF:
-                        byteStream.append(i)
-                        byteStreamPointer += 1
-                    else:
-                        byteStream.extend([0xFE,i])
-                        byteStreamPointer += 2
-                    for j in range(height):
-                        if frame[i][j] != currentFrame[i][j]:
-                            byteStream.append(j)
-                            currentFrame[i][j] = not currentFrame[i][j]
-                            byteStreamPointer += 1
-        if interlaceState:
-            interlaceState = False
-        else:
-            interlaceState = True
-                    
-        #printFrame(currentFrame) #this is just for test
-    return list(byteStream)
 def findInterlacedDeltas(frameListBuffer: list, width: int, height: int,interlaceState: bool = True) -> list:
     #Black is False
     #White is True
@@ -685,5 +640,5 @@ while True: #Save "byteStream.h"
 if saveAsPhoto:
     print("Saving result as images")
     TestSavedImages(byteStream=byteStream,height=height,width=width)
-    TestSavedVideo(byteStream=byteStream,height=height,width=width)
+    #TestSavedVideo(byteStream=byteStream,height=height,width=width) TODO: this doesn't work
     print("Images saved susccesfuly")
